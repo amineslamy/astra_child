@@ -1,0 +1,235 @@
+/*
+Theme Name:   قالب اختصاصی سامانه سحاب
+Theme URI:    https://mineslamy.github.io
+Description:  پوشه اختصاصی و ایزوله برای مدیریت کدهای فرانت‌اند سامانه پژوهشی سحاب
+Author:       Amin Eslamy
+Template:     astra
+Version:      1.0.0
+*/
+
+/* --- سیستم طراحی مدرن، فلت، شیشه‌ای و وسط‌چین سحاب --- */
+* { 
+    box-sizing: border-box; 
+    margin: 0; 
+    padding: 0; 
+    font-family: 'Vazirmatn', sans-serif; 
+}
+
+body { 
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #334155; 
+    min-height: 100vh; 
+    padding: 40px 20px; 
+    display: flex; 
+    justify-content: center; /* وسط‌چین کردن کامل افقی کل داشبورد در مانیتور */
+    align-items: flex-start; /* شروع چیدمان از بالای صفحه */
+}
+
+.layout { 
+    display: grid; 
+    grid-template-columns: 1fr 360px; 
+    gap: 30px; 
+    width: 100%; 
+    max-width: 1240px; 
+    margin: 0 auto; 
+}
+
+.main-content, .sidebar { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 25px; 
+}
+
+/* کارت‌های شیشه‌ای و فوق مدرن */
+.card { 
+    background: rgba(255, 255, 255, 0.85); 
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.7); 
+    border-radius: 20px; 
+    padding: 30px; 
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.card-title { 
+    font-size: 15px; 
+    font-weight: 800; 
+    margin-bottom: 25px; 
+    color: #1e293b; 
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 2px solid #f1f5f9; 
+    padding-bottom: 12px; 
+}
+
+/* هدر اختصاصی برنامه */
+.app-header { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 20px 35px;
+    background: rgba(255, 255, 255, 0.9);
+    border-top: 4px solid #4f46e5; 
+}
+
+.app-header h1 { 
+    font-size: 19px; 
+    color: #4f46e5; 
+    font-weight: 900; 
+    letter-spacing: -0.5px;
+}
+
+.status-badge { 
+    background: #e0f2fe; 
+    color: #0369a1; 
+    padding: 6px 16px; 
+    border-radius: 10px; 
+    font-size: 12px; 
+    font-weight: 700; 
+    border: 1px solid #bae6fd;
+}
+
+.status-badge.offline { 
+    background: #fee2e2; 
+    color: #b91c1c; 
+    border: 1px solid #fecaca;
+}
+
+/* فیلدها و اینپوت‌ها */
+.search-box, .form-grid { 
+    display: flex; 
+    gap: 12px; 
+}
+
+.form-grid { 
+    display: grid; 
+    grid-template-columns: 3fr 1fr; 
+    margin-bottom: 20px; 
+}
+
+.form-control { 
+    background: #f1f5f9; 
+    border: 1px solid transparent; 
+    color: #1e293b; 
+    padding: 14px 18px; 
+    border-radius: 12px; 
+    font-size: 14px; 
+    font-weight: 500;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-control:focus { 
+    outline: none; 
+    border-color: rgba(79, 70, 229, 0.4); 
+    background: #fff; 
+    box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.08); 
+}
+
+/* دکمه‌ها */
+.btn { 
+    background: #4f46e5; 
+    color: #fff; 
+    border: none; 
+    padding: 14px 30px; 
+    border-radius: 12px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: 700; 
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+}
+
+.btn:hover { 
+    background: #4338ca; 
+    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+    transform: translateY(-1px);
+}
+
+.btn-success { 
+    background: #10b981; 
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+.btn-success:hover { 
+    background: #059669; 
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+}
+
+/* آیتم‌های سایدبار */
+.post-list { 
+    list-style: none; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 15px; 
+}
+
+.post-item { 
+    background: rgba(248, 250, 252, 0.6); 
+    padding: 18px; 
+    border-radius: 14px; 
+    border: 1px solid #e2e8f0; 
+    transition: all 0.25s ease; 
+}
+
+.post-item:hover { 
+    background: #ffffff; 
+    border-color: #4f46e5; 
+    transform: translateY(-2px) scale(1.01); 
+    box-shadow: 0 12px 20px -10px rgba(0, 0, 0, 0.06); 
+}
+
+.post-link { 
+    color: #1e293b; 
+    text-decoration: none; 
+    font-size: 14px; 
+    font-weight: 700; 
+    display: block; 
+    margin-bottom: 10px; 
+}
+
+.post-meta { 
+    display: flex; 
+    justify-content: space-between; 
+    font-size: 12px; 
+    color: #64748b; 
+    font-weight: 500;
+}
+
+.cat-label a { 
+    color: #4f46e5; 
+    text-decoration: none; 
+    font-weight: 700; 
+    background: rgba(79, 70, 229, 0.06);
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+/* فرم لاگین اختصاصی */
+.login-inside-form { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 16px; 
+    max-width: 340px; 
+    margin: 30px auto; 
+}
+
+.alert { 
+    padding: 14px; 
+    border-radius: 12px; 
+    font-size: 13px; 
+    margin-bottom: 20px; 
+    font-weight: 700; 
+}
+.alert-success { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+.alert-danger { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+
+/* تمیزکاری ادیتور بومی وردپرس */
+.editor-container { 
+    border: 1px solid #cbd5e1; 
+    border-radius: 12px; 
+    overflow: hidden; 
+    background: #fff; 
+    margin-bottom: 20px; 
+}
