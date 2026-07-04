@@ -1,48 +1,47 @@
 <?php
 /*
-Template Name: Home Custom Page v5
+Template Name: Home Custom Page v8
 */
 
-// ۱. بررسی دسترسی بارگذاری رسانه‌های وردپرس در فرانت‌اند
 if (is_user_logged_in()) {
     add_action('wp_enqueue_scripts', function() {
-        wp_enqueue_media(); // فراخوانی کتابخانه رسانه وردپرس برای پاپ‌آپ تصاویر
+        wp_enqueue_media();
     });
 }
 
-// ۲. پردازش فرم ورود اطلاعات پژوهشی به همراه تصویر شاخص و برچسب‌ها
-if (isset($_POST['submit_research']) && is_user_logged_in()) {
-    if (!empty($_POST['research_title']) && !empty($_POST['research_content'])) {
+// وضعیت اولیه استروک فرم (قرمز پیش‌فرض برای حالت ذخیره نشده)
+$form_status_class = 'status-unsaved';
+
+// پردازش فرم ورود یافته‌های رصدی
+if (isset($_POST['submit_osint']) && is_user_logged_in()) {
+    if (!empty($_POST['osint_title']) && !empty($_POST['osint_content'])) {
         
-        // ساخت آرایه اصلی نوشته
-        $new_post = array(
-            'post_title'    => sanitize_text_field($_POST['research_title']),
-            'post_content'  => wp_kses_post($_POST['research_content']),
-            'post_status'   => sanitize_text_field($_POST['research_status']), // انتشار یا پیش‌نویس
+        $new_case = array(
+            'post_title'    => sanitize_text_field($_POST['osint_title']),
+            'post_content'  => wp_kses_post($_POST['osint_content']),
+            'post_status'   => sanitize_text_field($_POST['osint_status']),
             'post_type'     => 'post',
-            'post_category' => array(intval($_POST['research_cat'])),
-            'tags_input'    => sanitize_text_field($_POST['research_tags']) // ثبت برچسب‌ها
+            'post_category' => array(intval($_POST['osint_cat'])),
+            'tags_input'    => sanitize_text_field($_POST['osint_tags'])
         );
 
-        // درج نوشته در دیتابیس
-        $post_id = wp_insert_post($new_post);
+        $post_id = wp_insert_post($new_case);
 
         if ($post_id && !is_wp_error($post_id)) {
-            // اتصال تصویر شاخص انتخاب شده به نوشته
             $thumbnail_id = intval($_POST['page_thumbnail_id']);
             if ($thumbnail_id > 0) {
                 set_post_thumbnail($post_id, $thumbnail_id);
             }
-            $message = "اطلاعات پژوهشی با موفقیت در بانک داده پایدار شد.";
+            $message = "گزارش جدید با موفقیت در سیستم ثبت شد.";
+            $form_status_class = 'status-saved'; // تغییر استروک به سبز
         } else {
-            $error = "خطا در ثبت اطلاعات در دیتابیس.";
+            $error = "خطا در ذخیره گزارش.";
         }
     } else {
-        $error = "لطفاً عنوان و متن اصلی را وارد کنید.";
+        $error = "لطفاً عنوان و متن گزارش را وارد کنید.";
     }
 }
 
-// ۳. پردازش فرم لاگین اختصاصی درون‌برنامه‌ای
 if (isset($_POST['login_submit'])) {
     $login_data = array(
         'user_login'    => sanitize_text_field($_POST['log']),
@@ -64,123 +63,181 @@ if (isset($_POST['login_submit'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سامانه اطلاعاتی سحاب</title>
-    <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+    <title>سامانه رصد اطلاعاتی سحاب</title>
     <link rel="stylesheet" href="<?php echo get_stylesheet_uri(); ?>">
     <?php wp_head(); ?> 
 </head>
-<body>
-
-<div class="layout">
+<body class="light-theme"> <div class="sahab-container">
     
-    <div class="main-content">
-        
-        <div class="card app-header">
-            <h1>بانک اطلاعات پژوهشی سحاب</h1>
+    <header class="card app-header">
+        <div class="header-brand">
+            <img src="<?php echo get_stylesheet_directory_uri(); ?>/sahab-logo.png" alt="سحاب" class="app-logo">
+            <div class="header-titles">
+                <h1>سامانه رصد اطلاعاتی سحاب</h1>
+                <p>میز کار مرکزی ثبت یافته‌های رصدی و اوسینت</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button type="button" id="open_search_btn" class="header-action-btn" title="جستجو در سیستم">🔍</button>
+            <button type="button" id="theme_toggle_btn" class="header-action-btn" title="تغییر تم شب/روز">🌙</button>
+            
             <?php if (is_user_logged_in()) : ?>
-                <span class="status-badge">حساب پژوهشگر فعال</span>
+                <span class="status-badge active"><span class="pulse-dot"></span>تحلیل‌گر فعال</span>
             <?php else : ?>
-                <span class="status-badge offline">حالت نمایش عمومی</span>
+                <span class="status-badge offline">🔒 مدار بسته</span>
             <?php endif; ?>
         </div>
+    </header>
 
-        <div class="card">
-            <div class="card-title">🔍 کاوش و سرچ هوشمند مستندات</div>
-            <form role="search" method="get" class="search-box" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-                <input type="search" class="form-control" placeholder="نام شخص، موسسه، موضوع یا کلمه کلیدی..." value="<?php echo get_search_query(); ?>" name="s" />
-                <button type="submit" class="btn">جستجو</button>
+    <div class="layout">
+        
+        <main class="main-content">
+            
+            <div class="card form-card-container <?php echo $form_status_class; ?>">
+                <?php if ( is_user_logged_in() ) : ?>
+                    <div class="card-title">📝 ثبت گزارش رصدی جدید</div>
+                    
+                    <?php if(isset($message)) echo "<div class='alert alert-success'>$message</div>"; ?>
+                    <?php if(isset($error)) echo "<div class='alert alert-danger'>$error</div>"; ?>
+                    
+                    <form method="post" action="" class="research-form">
+                        
+                        <div class="form-row grid-3-1">
+                            <div class="form-group">
+                                <label class="field-label">عنوان گزارش / سناریو</label>
+                                <input type="text" name="osint_title" class="form-control" placeholder="موضوع را وارد کنید..." required>
+                            </div>
+                            <div class="form-group">
+                                <label class="field-label">حوزه رصد</label>
+                                <select name="osint_cat" class="form-control font-bold">
+                                    <option value="1">روحانیون شاخص</option>
+                                    <option value="2">موسسات</option>
+                                    <option value="3">روحانیون سیاسی</option>
+                                    <option value="4">بین الملل</option>
+                                    <option value="5">تحجر</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row grid-2-1">
+                            <div class="form-group">
+                                <label class="field-label">برچسب‌ها (با کاما جدا کنید)</label>
+                                <input type="text" name="osint_tags" class="form-control" placeholder="مثال: پاکستان، نجف، اشخاص_کلیدی">
+                            </div>
+                            <div class="form-group">
+                                <label class="field-label">وضعیت ذخیره‌سازی</label>
+                                <select name="osint_status" class="form-control font-bold">
+                                    <option value="publish">🚀 ثبت و انتشار قطعی</option>
+                                    <option value="draft">📁 ذخیره به عنوان پیش‌نویس ناتمام</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="media-uploader-box">
+                            <label class="field-label font-black">ضمیمه مستندات تصویری یا ادله رصدی:</label>
+                            <div class="media-actions">
+                                <button type="button" id="manage_image_btn" class="btn btn-secondary">🖼️ انتخاب تصویر (آرشیو / آپلود لوکال)</button>
+                                
+                                <div id="image_preview_container" style="display:none;" class="preview-badge">
+                                    <img id="uploaded_image_preview" src="" alt="Preview" class="uploaded_image_preview">
+                                    <button type="button" id="remove_image_btn" class="btn-remove" title="حذف فایل">🗑️</button>
+                                </div>
+                                <input type="hidden" name="page_thumbnail_id" id="page_thumbnail_id" value="">
+                            </div>
+                        </div>
+
+                        <div class="editor-container">
+                            <?php wp_editor('', 'research_content', array('media_buttons' => false, 'textarea_rows' => 12, 'quicktags' => false)); ?>
+                        </div>
+
+                        <button type="submit" name="submit_osint" class="btn btn-success">ذخیره و ثبت نهایی گزارش در دیتابیس</button>
+                    </form>
+
+                <?php else : ?>
+                    <div class="login-wrapper">
+                        <div class="login-icon">🔒</div>
+                        <div class="card-title text-center">ورود به سیستم امنیتی</div>
+                        <?php if(isset($login_error)) echo "<div class='alert alert-danger'>$login_error</div>"; ?>
+                        
+                        <form method="post" action="" class="login-inside-form">
+                            <div class="form-group">
+                                <label class="field-label">شناسه کاربری</label>
+                                <input type="text" name="log" class="form-control" placeholder="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="field-label">کلمه عبور</label>
+                                <input type="password" name="pwd" class="form-control" placeholder="password" required>
+                            </div>
+                            <button type="submit" name="login_submit" class="btn btn-primary w-full">تایید هویت</button>
+                        </form>
+                    </div>
+                <?php endif; ?>
+            </div>
+
+        </main>
+
+        <aside class="sidebar">
+            <div class="card">
+                <div class="card-title">📊 آخرین گزارش‌های ثبت شده</div>
+                <ul class="post-list">
+                    <?php
+                    $recent_posts = new WP_Query(array('posts_per_page' => 6, 'post_status' => array('publish', 'draft')));
+                    if ($recent_posts->have_posts()) :
+                        while ($recent_posts->have_posts()) : $recent_posts->the_post(); ?>
+                            <li class="post-item">
+                                <div class="post-header">
+                                    <a href="<?php the_permalink(); ?>" class="post-link"><?php the_title(); ?></a>
+                                    <span class="chevron-arrow">⭪</span>
+                                </div>
+                                <div class="post-meta">
+                                    <span class="meta-date">📅 <?php echo get_the_date(); ?></span>
+                                    <div class="meta-badges">
+                                        <?php if(get_post_status() == 'draft') : ?>
+                                            <span class="badge-draft">ناتمام</span>
+                                        <?php endif; ?>
+                                        <span class="badge-cat"><?php echo get_the_category()[0]->name; ?></span>
+                                    </div>
+                                </div>
+                            </li>
+                        <?php endwhile; wp_reset_postdata();
+                    else : ?>
+                        <li class="no-posts">هنوز هیچ گزارشی ثبت نشده است.</li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+        </aside>
+
+    </div>
+
+    <div id="search_modal" class="search-modal-overlay">
+        <div class="search-modal-card card">
+            <div class="modal-close-header">
+                <h3>🔍 جستجوی پیشرفته در کل سامانه</h3>
+                <button type="button" id="close_search_btn" class="close-modal-btn">❌</button>
+            </div>
+            <form role="search" method="get" class="search-box-modal" action="<?php echo esc_url( home_url( '/' ) ); ?>">
+                <input type="search" id="modal_search_input" class="form-control search-large-input" placeholder="عبارت مورد نظر، نام تارگت، هشتگ یا موضوع را تایپ کنید..." value="<?php echo get_search_query(); ?>" name="s" />
+                <button type="submit" class="btn btn-primary btn-large">جستجو و کاوش داده</button>
             </form>
         </div>
-
-        <div class="card">
-            <?php if ( is_user_logged_in() ) : ?>
-                <div class="card-title">📝 ثبت فیش پژوهشی جدید</div>
-                
-                <?php if(isset($message)) echo "<div class='alert alert-success'>$message</div>"; ?>
-                <?php if(isset($error)) echo "<div class='alert alert-danger'>$error</div>"; ?>
-                
-                <form method="post" action="" class="research-form">
-                    
-                    <div class="form-grid">
-                        <input type="text" name="research_title" class="form-control" placeholder="عنوان فیش یا موضوع سناریو..." required>
-                        <select name="research_cat" class="form-control">
-                            <option value="1">روحانیون شاخص</option>
-                            <option value="2">موسسات</option>
-                            <option value="3">روحانیون سیاسی</option>
-                            <option value="4">بین الملل</option>
-                            <option value="5">تحجر</option>
-                        </select>
-                    </div>
-
-                    <div class="form-grid" style="grid-template-columns: 2fr 1fr; margin-top: 10px;">
-                        <input type="text" name="research_tags" class="form-control" placeholder="برچسب‌ها (با کاما یا ویرگول جدا کنید: قم, نجف, زید)">
-                        <select name="research_status" class="form-control">
-                            <option value="publish">انتشار مستقیم</option>
-                            <option value="draft">ذخیره به عنوان پیش‌نویس</option>
-                        </select>
-                    </div>
-
-                    <div style="margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0;">
-                        <label style="display:block; margin-bottom:10px; font-weight:700; font-size:13px; color:#475569;">تصویر یا سند شاخص:</label>
-                        <div style="display:flex; gap:15px; align-items:center;">
-                            <button type="button" id="manage_image_btn" class="btn" style="background:#64748b; padding:10px 20px;">مدیریت و انتخاب تصویر (آرشیو / آپلود)</button>
-                            <div id="image_preview_container" style="display:none; align-items:center; gap:10px;">
-                                <img id="uploaded_image_preview" src="" style="max-height:50px; border-radius:6px; border:1px solid #cbd5e1;">
-                                <button type="button" id="remove_image_btn" style="background:none; border:none; color:#ef4444; cursor:pointer; font-size:12px; font-weight:700;">حذف تصویر</button>
-                            </div>
-                            <input type="hidden" name="page_thumbnail_id" id="page_thumbnail_id" value="">
-                        </div>
-                    </div>
-
-                    <div class="editor-container">
-                        <?php wp_editor('', 'research_content', array('media_buttons' => false, 'textarea_rows' => 12, 'quicktags' => false)); ?>
-                    </div>
-
-                    <button type="submit" name="submit_research" class="btn btn-success">ثبت و پایدارسازی داده</button>
-                </form>
-
-            <?php else : ?>
-                <div class="card-title">🔒 قفل امنیتی دیتابیس / ورود به سیستم</div>
-                <?php if(isset($login_error)) echo "<div class='alert alert-danger'>$login_error</div>"; ?>
-                
-                <form method="post" action="" class="login-inside-form">
-                    <input type="text" name="log" class="form-control" placeholder="نام کاربری" required>
-                    <input type="password" name="pwd" class="form-control" placeholder="کلمه عبور" required>
-                    <button type="submit" name="login_submit" class="btn">تایید هویت</button>
-                </form>
-            <?php endif; ?>
-        </div>
-
     </div>
 
-    <div class="sidebar">
-        <div class="card">
-            <div class="card-title">📊 آخرین اسناد پایدار شده</div>
-            <ul class="post-list">
-                <?php
-                $recent_posts = new WP_Query(array('posts_per_page' => 6, 'post_status' => array('publish', 'draft')));
-                if ($recent_posts->have_posts()) :
-                    while ($recent_posts->have_posts()) : $recent_posts->the_post(); ?>
-                        <li class="post-item">
-                            <a href="<?php the_permalink(); ?>" class="post-link"><?php the_title(); ?></a>
-                            <div class="post-meta">
-                                <span><?php echo get_the_date(); ?></span>
-                                <span class="cat-label">
-                                    <?php 
-                                    echo get_the_category()[0]->name; 
-                                    if(get_post_status() == 'draft') echo ' <span style="color:#ef4444;">(پیش‌نویس)</span>';
-                                    ?>
-                                </span>
-                            </div>
-                        </li>
-                    <?php endwhile; wp_reset_postdata();
-                else : ?>
-                    <li class="post-item" style="color: #64748b; text-align: center;">هنوز سندی ثبت نشده است.</li>
-                <?php endif; ?>
-            </ul>
+    <footer class="card technical-footer">
+        <div class="tech-footer-content">
+            <div class="tech-item">
+                <span class="tech-label">پایگاه داده محلی:</span>
+                <span class="tech-value status-online"><span class="dot"></span> متصل و پایدار (Local Engine)</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">ایستگاه کاری:</span>
+                <span class="tech-value font-mono">OSINT-System v6.5</span>
+            </div>
+            <div class="tech-item">
+                <span class="tech-label">محیط سرور:</span>
+                <span class="tech-value font-mono">Laragon Server</span>
+            </div>
         </div>
-    </div>
-
+    </footer>
 </div>
 
 <?php wp_footer(); ?>
